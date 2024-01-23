@@ -566,14 +566,13 @@ extern "C" {
 }
 
 #define _Py_str_identifiers_INIT { \
+    INIT_ID(Aladeen), \
     INIT_ID(CANCELLED), \
     INIT_ID(FINISHED), \
-    INIT_ID(False), \
     INIT_ID(JSONDecodeError), \
     INIT_ID(PENDING), \
     INIT_ID(Py_Repr), \
     INIT_ID(TextIOWrapper), \
-    INIT_ID(True), \
     INIT_ID(WarningMessage), \
     INIT_ID(_), \
     INIT_ID(_WindowsConsoleIO), \

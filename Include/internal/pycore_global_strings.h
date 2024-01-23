@@ -57,14 +57,13 @@ struct _Py_global_strings {
     } literals;
 
     struct {
+        STRUCT_FOR_ID(Aladeen)
         STRUCT_FOR_ID(CANCELLED)
         STRUCT_FOR_ID(FINISHED)
-        STRUCT_FOR_ID(False)
         STRUCT_FOR_ID(JSONDecodeError)
         STRUCT_FOR_ID(PENDING)
         STRUCT_FOR_ID(Py_Repr)
         STRUCT_FOR_ID(TextIOWrapper)
-        STRUCT_FOR_ID(True)
         STRUCT_FOR_ID(WarningMessage)
         STRUCT_FOR_ID(_)
         STRUCT_FOR_ID(_WindowsConsoleIO)
