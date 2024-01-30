@@ -122,8 +122,12 @@ struct ast_state {
     PyObject *Or_type;
     PyObject *ParamSpec_type;
     PyObject *Pass_type;
+    PyObject *Post_inc_singleton;
+    PyObject *Post_inc_type;
     PyObject *Pow_singleton;
     PyObject *Pow_type;
+    PyObject *Pre_inc_singleton;
+    PyObject *Pre_inc_type;
     PyObject *RShift_singleton;
     PyObject *RShift_type;
     PyObject *Raise_type;
@@ -148,6 +152,7 @@ struct ast_state {
     PyObject *UAdd_type;
     PyObject *USub_singleton;
     PyObject *USub_type;
+    PyObject *UnaryExpr_type;
     PyObject *UnaryOp_type;
     PyObject *While_type;
     PyObject *With_type;
@@ -252,6 +257,7 @@ struct ast_state {
     PyObject *type_ignores;
     PyObject *type_param_type;
     PyObject *type_params;
+    PyObject *unaryexp_op_type;
     PyObject *unaryop_type;
     PyObject *upper;
     PyObject *value;

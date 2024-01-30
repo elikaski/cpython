@@ -21,6 +21,7 @@ const char * const _PyParser_TokenNames[] = {
     "COMMA",
     "SEMI",
     "PLUS",
+    "PLUSPLUS",
     "MINUS",
     "STAR",
     "SLASH",
@@ -136,6 +137,7 @@ _PyToken_TwoChars(int c1, int c2)
         break;
     case '+':
         switch (c2) {
+        case '+': return PLUSPLUS;
         case '=': return PLUSEQUAL;
         }
         break;

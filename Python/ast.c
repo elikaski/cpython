@@ -273,6 +273,9 @@ validate_expr(struct validator *state, expr_ty exp, expr_context_ty ctx)
         ret = validate_expr(state, exp->v.BinOp.left, Load) &&
             validate_expr(state, exp->v.BinOp.right, Load);
         break;
+    case UnaryExpr_kind:
+        ret = validate_expr(state, exp->v.UnaryExpr.target, Store);
+        break;
     case UnaryOp_kind:
         ret = validate_expr(state, exp->v.UnaryOp.operand, Load);
         break;

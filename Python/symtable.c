@@ -2097,6 +2097,9 @@ symtable_visit_expr(struct symtable *st, expr_ty e)
         VISIT_QUIT(st, 0);
     }
     switch (e->kind) {
+    case UnaryExpr_kind:
+        VISIT(st, expr, e->v.UnaryExpr.target);
+        break;
     case NamedExpr_kind:
         if (!symtable_raise_if_annotation_block(st, "named expression", e)) {
             VISIT_QUIT(st, 0);

@@ -6118,10 +6118,38 @@ compiler_with(struct compiler *c, stmt_ty s, int pos)
 }
 
 static int
+compiler_visit_unary_expr(struct compiler *c, expr_ty e) {
+    location loc = LOC(e);
+    assert(e->kind == UnaryExpr_kind);
+    expr_ty target = e->v.UnaryExpr.target;
+    assert(target->kind == Name_kind);
+    switch (e->v.UnaryExpr.op) {
+        case Pre_inc:
+            compiler_nameop(c, loc, target->v.Name.id, Load);
+            ADDOP_LOAD_CONST_NEW(c, loc, PyLong_FromLong(1));
+            ADDOP_BINARY(c, loc, Add);
+            ADDOP_I(c, loc, COPY, 1);
+            compiler_nameop(c, loc, target->v.Name.id, Store);
+            break;
+        
+        case Post_inc:
+            compiler_nameop(c, loc, target->v.Name.id, Load);
+            ADDOP_I(c, loc, COPY, 1);
+            ADDOP_LOAD_CONST_NEW(c, loc, PyLong_FromLong(1));
+            ADDOP_BINARY(c, loc, Add);
+            compiler_nameop(c, loc, target->v.Name.id, Store);
+            break;
+    }
+    return SUCCESS;
+}
+
+static int
 compiler_visit_expr1(struct compiler *c, expr_ty e)
 {
     location loc = LOC(e);
     switch (e->kind) {
+    case UnaryExpr_kind:
+        return compiler_visit_unary_expr(c, e);
     case NamedExpr_kind:
         VISIT(c, expr, e->v.NamedExpr.value);
         ADDOP_I(c, loc, COPY, 1);

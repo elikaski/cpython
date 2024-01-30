@@ -691,6 +691,7 @@ _INFSTR = "1e" + repr(sys.float_info.max_10_exp + 1)
 class _Precedence:
     """Precedence table that originated from python grammar."""
 
+    UNARY_EXPR = auto()      # <target> ++ | ++ <target>
     NAMED_EXPR = auto()      # <target> := <expr1>
     TUPLE = auto()           # <expr1>, <expr2>
     YIELD = auto()           # 'yield', 'yield from'
@@ -895,6 +896,19 @@ class _Unparser(NodeVisitor):
             self.traverse(node.target)
             self.write(" := ")
             self.traverse(node.value)
+    
+    def visit_UnaryExpr(self, node):
+        with self.require_parens(_Precedence.UNARY_EXPR, node):
+            self.set_precedence(_Precedence.ATOM, node.target)
+            op = node.op.__class__.__name__
+            if op == "Pre_inc":
+                self.write(" ++")
+                self.traverse(node.target)
+                self.write(" ")
+            elif op == "Post_inc":
+                self.write(" ")
+                self.traverse(node.target)
+                self.write("++ ")
 
     def visit_Import(self, node):
         self.fill("import ")

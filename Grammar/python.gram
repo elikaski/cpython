@@ -802,6 +802,10 @@ factor[expr_ty] (memo):
     | '~' a=factor { _PyAST_UnaryOp(Invert, a, EXTRA) }
     | power
 
+unaryexp[expr_ty]:
+    | '++' a=NAME { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), Pre_inc, EXTRA) }
+    | a=NAME '++' { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), Post_inc, EXTRA) }
+
 power[expr_ty]:
     | a=await_primary '**' b=factor { _PyAST_BinOp(a, Pow, b, EXTRA) }
     | await_primary
@@ -824,6 +828,7 @@ primary[expr_ty]:
                  (b) ? ((expr_ty) b)->v.Call.keywords : NULL,
                  EXTRA) }
     | a=primary '[' b=slices ']' { _PyAST_Subscript(a, b, Load, EXTRA) }
+    | unaryexp
     | atom
 
 slices[expr_ty]:

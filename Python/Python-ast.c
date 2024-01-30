@@ -139,8 +139,12 @@ void _PyAST_Fini(PyInterpreterState *interp)
     Py_CLEAR(state->Or_type);
     Py_CLEAR(state->ParamSpec_type);
     Py_CLEAR(state->Pass_type);
+    Py_CLEAR(state->Post_inc_singleton);
+    Py_CLEAR(state->Post_inc_type);
     Py_CLEAR(state->Pow_singleton);
     Py_CLEAR(state->Pow_type);
+    Py_CLEAR(state->Pre_inc_singleton);
+    Py_CLEAR(state->Pre_inc_type);
     Py_CLEAR(state->RShift_singleton);
     Py_CLEAR(state->RShift_type);
     Py_CLEAR(state->Raise_type);
@@ -165,6 +169,7 @@ void _PyAST_Fini(PyInterpreterState *interp)
     Py_CLEAR(state->UAdd_type);
     Py_CLEAR(state->USub_singleton);
     Py_CLEAR(state->USub_type);
+    Py_CLEAR(state->UnaryExpr_type);
     Py_CLEAR(state->UnaryOp_type);
     Py_CLEAR(state->While_type);
     Py_CLEAR(state->With_type);
@@ -269,6 +274,7 @@ void _PyAST_Fini(PyInterpreterState *interp)
     Py_CLEAR(state->type_ignores);
     Py_CLEAR(state->type_param_type);
     Py_CLEAR(state->type_params);
+    Py_CLEAR(state->unaryexp_op_type);
     Py_CLEAR(state->unaryop_type);
     Py_CLEAR(state->upper);
     Py_CLEAR(state->value);
@@ -556,6 +562,10 @@ static const char * const NamedExpr_fields[]={
     "target",
     "value",
 };
+static const char * const UnaryExpr_fields[]={
+    "target",
+    "op",
+};
 static const char * const BinOp_fields[]={
     "left",
     "op",
@@ -662,6 +672,8 @@ static const char * const Slice_fields[]={
 };
 static PyObject* ast2obj_expr_context(struct ast_state *state, struct validator
                                       *vstate, expr_context_ty);
+static PyObject* ast2obj_unaryexp_op(struct ast_state *state, struct validator
+                                     *vstate, unaryexp_op_ty);
 static PyObject* ast2obj_boolop(struct ast_state *state, struct validator
                                 *vstate, boolop_ty);
 static PyObject* ast2obj_operator(struct ast_state *state, struct validator
@@ -1371,6 +1383,7 @@ init_types(struct ast_state *state)
     state->expr_type = make_type(state, "expr", state->AST_type, NULL, 0,
         "expr = BoolOp(boolop op, expr* values)\n"
         "     | NamedExpr(expr target, expr value)\n"
+        "     | UnaryExpr(expr target, unaryexp_op op)\n"
         "     | BinOp(expr left, operator op, expr right)\n"
         "     | UnaryOp(unaryop op, expr operand)\n"
         "     | Lambda(arguments args, expr body)\n"
@@ -1412,6 +1425,10 @@ init_types(struct ast_state *state)
                                       NamedExpr_fields, 2,
         "NamedExpr(expr target, expr value)");
     if (!state->NamedExpr_type) return -1;
+    state->UnaryExpr_type = make_type(state, "UnaryExpr", state->expr_type,
+                                      UnaryExpr_fields, 2,
+        "UnaryExpr(expr target, unaryexp_op op)");
+    if (!state->UnaryExpr_type) return -1;
     state->BinOp_type = make_type(state, "BinOp", state->expr_type,
                                   BinOp_fields, 3,
         "BinOp(expr left, operator op, expr right)");
@@ -1551,6 +1568,27 @@ init_types(struct ast_state *state)
     state->Del_singleton = PyType_GenericNew((PyTypeObject *)state->Del_type,
                                              NULL, NULL);
     if (!state->Del_singleton) return -1;
+    state->unaryexp_op_type = make_type(state, "unaryexp_op", state->AST_type,
+                                        NULL, 0,
+        "unaryexp_op = Pre_inc | Post_inc");
+    if (!state->unaryexp_op_type) return -1;
+    if (add_attributes(state, state->unaryexp_op_type, NULL, 0) < 0) return -1;
+    state->Pre_inc_type = make_type(state, "Pre_inc", state->unaryexp_op_type,
+                                    NULL, 0,
+        "Pre_inc");
+    if (!state->Pre_inc_type) return -1;
+    state->Pre_inc_singleton = PyType_GenericNew((PyTypeObject
+                                                 *)state->Pre_inc_type, NULL,
+                                                 NULL);
+    if (!state->Pre_inc_singleton) return -1;
+    state->Post_inc_type = make_type(state, "Post_inc",
+                                     state->unaryexp_op_type, NULL, 0,
+        "Post_inc");
+    if (!state->Post_inc_type) return -1;
+    state->Post_inc_singleton = PyType_GenericNew((PyTypeObject
+                                                  *)state->Post_inc_type, NULL,
+                                                  NULL);
+    if (!state->Post_inc_singleton) return -1;
     state->boolop_type = make_type(state, "boolop", state->AST_type, NULL, 0,
         "boolop = And | Or");
     if (!state->boolop_type) return -1;
@@ -1950,6 +1988,8 @@ static int obj2ast_expr(struct ast_state *state, PyObject* obj, expr_ty* out,
                         PyArena* arena);
 static int obj2ast_expr_context(struct ast_state *state, PyObject* obj,
                                 expr_context_ty* out, PyArena* arena);
+static int obj2ast_unaryexp_op(struct ast_state *state, PyObject* obj,
+                               unaryexp_op_ty* out, PyArena* arena);
 static int obj2ast_boolop(struct ast_state *state, PyObject* obj, boolop_ty*
                           out, PyArena* arena);
 static int obj2ast_operator(struct ast_state *state, PyObject* obj,
@@ -2743,6 +2783,34 @@ _PyAST_NamedExpr(expr_ty target, expr_ty value, int lineno, int col_offset, int
     p->kind = NamedExpr_kind;
     p->v.NamedExpr.target = target;
     p->v.NamedExpr.value = value;
+    p->lineno = lineno;
+    p->col_offset = col_offset;
+    p->end_lineno = end_lineno;
+    p->end_col_offset = end_col_offset;
+    return p;
+}
+
+expr_ty
+_PyAST_UnaryExpr(expr_ty target, unaryexp_op_ty op, int lineno, int col_offset,
+                 int end_lineno, int end_col_offset, PyArena *arena)
+{
+    expr_ty p;
+    if (!target) {
+        PyErr_SetString(PyExc_ValueError,
+                        "field 'target' is required for UnaryExpr");
+        return NULL;
+    }
+    if (!op) {
+        PyErr_SetString(PyExc_ValueError,
+                        "field 'op' is required for UnaryExpr");
+        return NULL;
+    }
+    p = (expr_ty)_PyArena_Malloc(arena, sizeof(*p));
+    if (!p)
+        return NULL;
+    p->kind = UnaryExpr_kind;
+    p->v.UnaryExpr.target = target;
+    p->v.UnaryExpr.op = op;
     p->lineno = lineno;
     p->col_offset = col_offset;
     p->end_lineno = end_lineno;
@@ -4541,6 +4609,21 @@ ast2obj_expr(struct ast_state *state, struct validator *vstate, void* _o)
             goto failed;
         Py_DECREF(value);
         break;
+    case UnaryExpr_kind:
+        tp = (PyTypeObject *)state->UnaryExpr_type;
+        result = PyType_GenericNew(tp, NULL, NULL);
+        if (!result) goto failed;
+        value = ast2obj_expr(state, vstate, o->v.UnaryExpr.target);
+        if (!value) goto failed;
+        if (PyObject_SetAttr(result, state->target, value) == -1)
+            goto failed;
+        Py_DECREF(value);
+        value = ast2obj_unaryexp_op(state, vstate, o->v.UnaryExpr.op);
+        if (!value) goto failed;
+        if (PyObject_SetAttr(result, state->op, value) == -1)
+            goto failed;
+        Py_DECREF(value);
+        break;
     case BinOp_kind:
         tp = (PyTypeObject *)state->BinOp_type;
         result = PyType_GenericNew(tp, NULL, NULL);
@@ -4998,6 +5081,17 @@ PyObject* ast2obj_expr_context(struct ast_state *state, struct validator
             return Py_NewRef(state->Store_singleton);
         case Del:
             return Py_NewRef(state->Del_singleton);
+    }
+    Py_UNREACHABLE();
+}
+PyObject* ast2obj_unaryexp_op(struct ast_state *state, struct validator
+                              *vstate, unaryexp_op_ty o)
+{
+    switch(o) {
+        case Pre_inc:
+            return Py_NewRef(state->Pre_inc_singleton);
+        case Post_inc:
+            return Py_NewRef(state->Post_inc_singleton);
     }
     Py_UNREACHABLE();
 }
@@ -8915,6 +9009,54 @@ obj2ast_expr(struct ast_state *state, PyObject* obj, expr_ty* out, PyArena*
         if (*out == NULL) goto failed;
         return 0;
     }
+    tp = state->UnaryExpr_type;
+    isinstance = PyObject_IsInstance(obj, tp);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        expr_ty target;
+        unaryexp_op_ty op;
+
+        if (PyObject_GetOptionalAttr(obj, state->target, &tmp) < 0) {
+            return -1;
+        }
+        if (tmp == NULL) {
+            PyErr_SetString(PyExc_TypeError, "required field \"target\" missing from UnaryExpr");
+            return -1;
+        }
+        else {
+            int res;
+            if (_Py_EnterRecursiveCall(" while traversing 'UnaryExpr' node")) {
+                goto failed;
+            }
+            res = obj2ast_expr(state, tmp, &target, arena);
+            _Py_LeaveRecursiveCall();
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
+        if (PyObject_GetOptionalAttr(obj, state->op, &tmp) < 0) {
+            return -1;
+        }
+        if (tmp == NULL) {
+            PyErr_SetString(PyExc_TypeError, "required field \"op\" missing from UnaryExpr");
+            return -1;
+        }
+        else {
+            int res;
+            if (_Py_EnterRecursiveCall(" while traversing 'UnaryExpr' node")) {
+                goto failed;
+            }
+            res = obj2ast_unaryexp_op(state, tmp, &op, arena);
+            _Py_LeaveRecursiveCall();
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
+        *out = _PyAST_UnaryExpr(target, op, lineno, col_offset, end_lineno,
+                                end_col_offset, arena);
+        if (*out == NULL) goto failed;
+        return 0;
+    }
     tp = state->BinOp_type;
     isinstance = PyObject_IsInstance(obj, tp);
     if (isinstance == -1) {
@@ -10521,6 +10663,33 @@ obj2ast_expr_context(struct ast_state *state, PyObject* obj, expr_context_ty*
     }
 
     PyErr_Format(PyExc_TypeError, "expected some sort of expr_context, but got %R", obj);
+    return -1;
+}
+
+int
+obj2ast_unaryexp_op(struct ast_state *state, PyObject* obj, unaryexp_op_ty*
+                    out, PyArena* arena)
+{
+    int isinstance;
+
+    isinstance = PyObject_IsInstance(obj, state->Pre_inc_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = Pre_inc;
+        return 0;
+    }
+    isinstance = PyObject_IsInstance(obj, state->Post_inc_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = Post_inc;
+        return 0;
+    }
+
+    PyErr_Format(PyExc_TypeError, "expected some sort of unaryexp_op, but got %R", obj);
     return -1;
 }
 
@@ -12848,6 +13017,9 @@ astmodule_exec(PyObject *m)
     if (PyModule_AddObjectRef(m, "NamedExpr", state->NamedExpr_type) < 0) {
         return -1;
     }
+    if (PyModule_AddObjectRef(m, "UnaryExpr", state->UnaryExpr_type) < 0) {
+        return -1;
+    }
     if (PyModule_AddObjectRef(m, "BinOp", state->BinOp_type) < 0) {
         return -1;
     }
@@ -12936,6 +13108,15 @@ astmodule_exec(PyObject *m)
         return -1;
     }
     if (PyModule_AddObjectRef(m, "Del", state->Del_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "unaryexp_op", state->unaryexp_op_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "Pre_inc", state->Pre_inc_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "Post_inc", state->Post_inc_type) < 0) {
         return -1;
     }
     if (PyModule_AddObjectRef(m, "boolop", state->boolop_type) < 0) {

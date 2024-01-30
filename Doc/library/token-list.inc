@@ -45,6 +45,10 @@
 
    Token value for ``"+"``.
 
+.. data:: PLUSPLUS
+
+   Token value for ``"++"``.
+
 .. data:: MINUS
 
    Token value for ``"-"``.
