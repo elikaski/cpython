@@ -22,6 +22,15 @@ const char * const _PyParser_TokenNames[] = {
     "SEMI",
     "PLUS",
     "PLUSPLUS",
+    "MINUSMINUS",
+    "SHLSHL",
+    "SHRSHR",
+    "XORXOR",
+    "ANDAND",
+    "OROR",
+    "MULMUL",
+    "DIVDIV",
+    "MODMOD",
     "MINUS",
     "STAR",
     "SLASH",
@@ -121,11 +130,13 @@ _PyToken_TwoChars(int c1, int c2)
         break;
     case '%':
         switch (c2) {
+        case '%': return MODMOD;
         case '=': return PERCENTEQUAL;
         }
         break;
     case '&':
         switch (c2) {
+        case '&': return ANDAND;
         case '=': return AMPEREQUAL;
         }
         break;
@@ -143,6 +154,7 @@ _PyToken_TwoChars(int c1, int c2)
         break;
     case '-':
         switch (c2) {
+        case '-': return MINUSMINUS;
         case '=': return MINEQUAL;
         case '>': return RARROW;
         }
@@ -184,11 +196,13 @@ _PyToken_TwoChars(int c1, int c2)
     case '^':
         switch (c2) {
         case '=': return CIRCUMFLEXEQUAL;
+        case '^': return XORXOR;
         }
         break;
     case '|':
         switch (c2) {
         case '=': return VBAREQUAL;
+        case '|': return OROR;
         }
         break;
     }
@@ -203,6 +217,7 @@ _PyToken_ThreeChars(int c1, int c2, int c3)
         switch (c2) {
         case '*':
             switch (c3) {
+            case '*': return MULMUL;
             case '=': return DOUBLESTAREQUAL;
             }
             break;
@@ -221,6 +236,7 @@ _PyToken_ThreeChars(int c1, int c2, int c3)
         switch (c2) {
         case '/':
             switch (c3) {
+            case '/': return DIVDIV;
             case '=': return DOUBLESLASHEQUAL;
             }
             break;
@@ -230,6 +246,7 @@ _PyToken_ThreeChars(int c1, int c2, int c3)
         switch (c2) {
         case '<':
             switch (c3) {
+            case '<': return SHLSHL;
             case '=': return LEFTSHIFTEQUAL;
             }
             break;
@@ -240,6 +257,7 @@ _PyToken_ThreeChars(int c1, int c2, int c3)
         case '>':
             switch (c3) {
             case '=': return RIGHTSHIFTEQUAL;
+            case '>': return SHRSHR;
             }
             break;
         }

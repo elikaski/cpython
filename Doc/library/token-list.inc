@@ -49,6 +49,42 @@
 
    Token value for ``"++"``.
 
+.. data:: MINUSMINUS
+
+   Token value for ``"--"``.
+
+.. data:: SHLSHL
+
+   Token value for ``"<<<"``.
+
+.. data:: SHRSHR
+
+   Token value for ``">>>"``.
+
+.. data:: XORXOR
+
+   Token value for ``"^^"``.
+
+.. data:: ANDAND
+
+   Token value for ``"&&"``.
+
+.. data:: OROR
+
+   Token value for ``"||"``.
+
+.. data:: MULMUL
+
+   Token value for ``"***"``.
+
+.. data:: DIVDIV
+
+   Token value for ``"///"``.
+
+.. data:: MODMOD
+
+   Token value for ``"%%"``.
+
 .. data:: MINUS
 
    Token value for ``"-"``.

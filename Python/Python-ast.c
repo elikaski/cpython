@@ -139,12 +139,12 @@ void _PyAST_Fini(PyInterpreterState *interp)
     Py_CLEAR(state->Or_type);
     Py_CLEAR(state->ParamSpec_type);
     Py_CLEAR(state->Pass_type);
-    Py_CLEAR(state->Post_inc_singleton);
-    Py_CLEAR(state->Post_inc_type);
+    Py_CLEAR(state->Post_singleton);
+    Py_CLEAR(state->Post_type);
     Py_CLEAR(state->Pow_singleton);
     Py_CLEAR(state->Pow_type);
-    Py_CLEAR(state->Pre_inc_singleton);
-    Py_CLEAR(state->Pre_inc_type);
+    Py_CLEAR(state->Pre_singleton);
+    Py_CLEAR(state->Pre_type);
     Py_CLEAR(state->RShift_singleton);
     Py_CLEAR(state->RShift_type);
     Py_CLEAR(state->Raise_type);
@@ -169,8 +169,28 @@ void _PyAST_Fini(PyInterpreterState *interp)
     Py_CLEAR(state->UAdd_type);
     Py_CLEAR(state->USub_singleton);
     Py_CLEAR(state->USub_type);
+    Py_CLEAR(state->UnaryAnd_singleton);
+    Py_CLEAR(state->UnaryAnd_type);
+    Py_CLEAR(state->UnaryDec_singleton);
+    Py_CLEAR(state->UnaryDec_type);
+    Py_CLEAR(state->UnaryDiv_singleton);
+    Py_CLEAR(state->UnaryDiv_type);
     Py_CLEAR(state->UnaryExpr_type);
+    Py_CLEAR(state->UnaryInc_singleton);
+    Py_CLEAR(state->UnaryInc_type);
+    Py_CLEAR(state->UnaryMod_singleton);
+    Py_CLEAR(state->UnaryMod_type);
+    Py_CLEAR(state->UnaryMul_singleton);
+    Py_CLEAR(state->UnaryMul_type);
     Py_CLEAR(state->UnaryOp_type);
+    Py_CLEAR(state->UnaryOr_singleton);
+    Py_CLEAR(state->UnaryOr_type);
+    Py_CLEAR(state->UnaryShl_singleton);
+    Py_CLEAR(state->UnaryShl_type);
+    Py_CLEAR(state->UnaryShr_singleton);
+    Py_CLEAR(state->UnaryShr_type);
+    Py_CLEAR(state->UnaryXor_singleton);
+    Py_CLEAR(state->UnaryXor_type);
     Py_CLEAR(state->While_type);
     Py_CLEAR(state->With_type);
     Py_CLEAR(state->YieldFrom_type);
@@ -274,6 +294,7 @@ void _PyAST_Fini(PyInterpreterState *interp)
     Py_CLEAR(state->type_ignores);
     Py_CLEAR(state->type_param_type);
     Py_CLEAR(state->type_params);
+    Py_CLEAR(state->unaryexp_context_type);
     Py_CLEAR(state->unaryexp_op_type);
     Py_CLEAR(state->unaryop_type);
     Py_CLEAR(state->upper);
@@ -565,6 +586,7 @@ static const char * const NamedExpr_fields[]={
 static const char * const UnaryExpr_fields[]={
     "target",
     "op",
+    "ctx",
 };
 static const char * const BinOp_fields[]={
     "left",
@@ -674,6 +696,9 @@ static PyObject* ast2obj_expr_context(struct ast_state *state, struct validator
                                       *vstate, expr_context_ty);
 static PyObject* ast2obj_unaryexp_op(struct ast_state *state, struct validator
                                      *vstate, unaryexp_op_ty);
+static PyObject* ast2obj_unaryexp_context(struct ast_state *state, struct
+                                          validator *vstate,
+                                          unaryexp_context_ty);
 static PyObject* ast2obj_boolop(struct ast_state *state, struct validator
                                 *vstate, boolop_ty);
 static PyObject* ast2obj_operator(struct ast_state *state, struct validator
@@ -1383,7 +1408,7 @@ init_types(struct ast_state *state)
     state->expr_type = make_type(state, "expr", state->AST_type, NULL, 0,
         "expr = BoolOp(boolop op, expr* values)\n"
         "     | NamedExpr(expr target, expr value)\n"
-        "     | UnaryExpr(expr target, unaryexp_op op)\n"
+        "     | UnaryExpr(expr target, unaryexp_op op, unaryexp_context ctx)\n"
         "     | BinOp(expr left, operator op, expr right)\n"
         "     | UnaryOp(unaryop op, expr operand)\n"
         "     | Lambda(arguments args, expr body)\n"
@@ -1426,8 +1451,8 @@ init_types(struct ast_state *state)
         "NamedExpr(expr target, expr value)");
     if (!state->NamedExpr_type) return -1;
     state->UnaryExpr_type = make_type(state, "UnaryExpr", state->expr_type,
-                                      UnaryExpr_fields, 2,
-        "UnaryExpr(expr target, unaryexp_op op)");
+                                      UnaryExpr_fields, 3,
+        "UnaryExpr(expr target, unaryexp_op op, unaryexp_context ctx)");
     if (!state->UnaryExpr_type) return -1;
     state->BinOp_type = make_type(state, "BinOp", state->expr_type,
                                   BinOp_fields, 3,
@@ -1570,25 +1595,109 @@ init_types(struct ast_state *state)
     if (!state->Del_singleton) return -1;
     state->unaryexp_op_type = make_type(state, "unaryexp_op", state->AST_type,
                                         NULL, 0,
-        "unaryexp_op = Pre_inc | Post_inc");
+        "unaryexp_op = UnaryInc | UnaryDec | UnaryShl | UnaryShr | UnaryXor | UnaryAnd | UnaryOr | UnaryMul | UnaryDiv | UnaryMod");
     if (!state->unaryexp_op_type) return -1;
     if (add_attributes(state, state->unaryexp_op_type, NULL, 0) < 0) return -1;
-    state->Pre_inc_type = make_type(state, "Pre_inc", state->unaryexp_op_type,
-                                    NULL, 0,
-        "Pre_inc");
-    if (!state->Pre_inc_type) return -1;
-    state->Pre_inc_singleton = PyType_GenericNew((PyTypeObject
-                                                 *)state->Pre_inc_type, NULL,
-                                                 NULL);
-    if (!state->Pre_inc_singleton) return -1;
-    state->Post_inc_type = make_type(state, "Post_inc",
+    state->UnaryInc_type = make_type(state, "UnaryInc",
                                      state->unaryexp_op_type, NULL, 0,
-        "Post_inc");
-    if (!state->Post_inc_type) return -1;
-    state->Post_inc_singleton = PyType_GenericNew((PyTypeObject
-                                                  *)state->Post_inc_type, NULL,
+        "UnaryInc");
+    if (!state->UnaryInc_type) return -1;
+    state->UnaryInc_singleton = PyType_GenericNew((PyTypeObject
+                                                  *)state->UnaryInc_type, NULL,
                                                   NULL);
-    if (!state->Post_inc_singleton) return -1;
+    if (!state->UnaryInc_singleton) return -1;
+    state->UnaryDec_type = make_type(state, "UnaryDec",
+                                     state->unaryexp_op_type, NULL, 0,
+        "UnaryDec");
+    if (!state->UnaryDec_type) return -1;
+    state->UnaryDec_singleton = PyType_GenericNew((PyTypeObject
+                                                  *)state->UnaryDec_type, NULL,
+                                                  NULL);
+    if (!state->UnaryDec_singleton) return -1;
+    state->UnaryShl_type = make_type(state, "UnaryShl",
+                                     state->unaryexp_op_type, NULL, 0,
+        "UnaryShl");
+    if (!state->UnaryShl_type) return -1;
+    state->UnaryShl_singleton = PyType_GenericNew((PyTypeObject
+                                                  *)state->UnaryShl_type, NULL,
+                                                  NULL);
+    if (!state->UnaryShl_singleton) return -1;
+    state->UnaryShr_type = make_type(state, "UnaryShr",
+                                     state->unaryexp_op_type, NULL, 0,
+        "UnaryShr");
+    if (!state->UnaryShr_type) return -1;
+    state->UnaryShr_singleton = PyType_GenericNew((PyTypeObject
+                                                  *)state->UnaryShr_type, NULL,
+                                                  NULL);
+    if (!state->UnaryShr_singleton) return -1;
+    state->UnaryXor_type = make_type(state, "UnaryXor",
+                                     state->unaryexp_op_type, NULL, 0,
+        "UnaryXor");
+    if (!state->UnaryXor_type) return -1;
+    state->UnaryXor_singleton = PyType_GenericNew((PyTypeObject
+                                                  *)state->UnaryXor_type, NULL,
+                                                  NULL);
+    if (!state->UnaryXor_singleton) return -1;
+    state->UnaryAnd_type = make_type(state, "UnaryAnd",
+                                     state->unaryexp_op_type, NULL, 0,
+        "UnaryAnd");
+    if (!state->UnaryAnd_type) return -1;
+    state->UnaryAnd_singleton = PyType_GenericNew((PyTypeObject
+                                                  *)state->UnaryAnd_type, NULL,
+                                                  NULL);
+    if (!state->UnaryAnd_singleton) return -1;
+    state->UnaryOr_type = make_type(state, "UnaryOr", state->unaryexp_op_type,
+                                    NULL, 0,
+        "UnaryOr");
+    if (!state->UnaryOr_type) return -1;
+    state->UnaryOr_singleton = PyType_GenericNew((PyTypeObject
+                                                 *)state->UnaryOr_type, NULL,
+                                                 NULL);
+    if (!state->UnaryOr_singleton) return -1;
+    state->UnaryMul_type = make_type(state, "UnaryMul",
+                                     state->unaryexp_op_type, NULL, 0,
+        "UnaryMul");
+    if (!state->UnaryMul_type) return -1;
+    state->UnaryMul_singleton = PyType_GenericNew((PyTypeObject
+                                                  *)state->UnaryMul_type, NULL,
+                                                  NULL);
+    if (!state->UnaryMul_singleton) return -1;
+    state->UnaryDiv_type = make_type(state, "UnaryDiv",
+                                     state->unaryexp_op_type, NULL, 0,
+        "UnaryDiv");
+    if (!state->UnaryDiv_type) return -1;
+    state->UnaryDiv_singleton = PyType_GenericNew((PyTypeObject
+                                                  *)state->UnaryDiv_type, NULL,
+                                                  NULL);
+    if (!state->UnaryDiv_singleton) return -1;
+    state->UnaryMod_type = make_type(state, "UnaryMod",
+                                     state->unaryexp_op_type, NULL, 0,
+        "UnaryMod");
+    if (!state->UnaryMod_type) return -1;
+    state->UnaryMod_singleton = PyType_GenericNew((PyTypeObject
+                                                  *)state->UnaryMod_type, NULL,
+                                                  NULL);
+    if (!state->UnaryMod_singleton) return -1;
+    state->unaryexp_context_type = make_type(state, "unaryexp_context",
+                                             state->AST_type, NULL, 0,
+        "unaryexp_context = Pre | Post");
+    if (!state->unaryexp_context_type) return -1;
+    if (add_attributes(state, state->unaryexp_context_type, NULL, 0) < 0)
+        return -1;
+    state->Pre_type = make_type(state, "Pre", state->unaryexp_context_type,
+                                NULL, 0,
+        "Pre");
+    if (!state->Pre_type) return -1;
+    state->Pre_singleton = PyType_GenericNew((PyTypeObject *)state->Pre_type,
+                                             NULL, NULL);
+    if (!state->Pre_singleton) return -1;
+    state->Post_type = make_type(state, "Post", state->unaryexp_context_type,
+                                 NULL, 0,
+        "Post");
+    if (!state->Post_type) return -1;
+    state->Post_singleton = PyType_GenericNew((PyTypeObject *)state->Post_type,
+                                              NULL, NULL);
+    if (!state->Post_singleton) return -1;
     state->boolop_type = make_type(state, "boolop", state->AST_type, NULL, 0,
         "boolop = And | Or");
     if (!state->boolop_type) return -1;
@@ -1990,6 +2099,8 @@ static int obj2ast_expr_context(struct ast_state *state, PyObject* obj,
                                 expr_context_ty* out, PyArena* arena);
 static int obj2ast_unaryexp_op(struct ast_state *state, PyObject* obj,
                                unaryexp_op_ty* out, PyArena* arena);
+static int obj2ast_unaryexp_context(struct ast_state *state, PyObject* obj,
+                                    unaryexp_context_ty* out, PyArena* arena);
 static int obj2ast_boolop(struct ast_state *state, PyObject* obj, boolop_ty*
                           out, PyArena* arena);
 static int obj2ast_operator(struct ast_state *state, PyObject* obj,
@@ -2791,8 +2902,9 @@ _PyAST_NamedExpr(expr_ty target, expr_ty value, int lineno, int col_offset, int
 }
 
 expr_ty
-_PyAST_UnaryExpr(expr_ty target, unaryexp_op_ty op, int lineno, int col_offset,
-                 int end_lineno, int end_col_offset, PyArena *arena)
+_PyAST_UnaryExpr(expr_ty target, unaryexp_op_ty op, unaryexp_context_ty ctx,
+                 int lineno, int col_offset, int end_lineno, int
+                 end_col_offset, PyArena *arena)
 {
     expr_ty p;
     if (!target) {
@@ -2805,12 +2917,18 @@ _PyAST_UnaryExpr(expr_ty target, unaryexp_op_ty op, int lineno, int col_offset,
                         "field 'op' is required for UnaryExpr");
         return NULL;
     }
+    if (!ctx) {
+        PyErr_SetString(PyExc_ValueError,
+                        "field 'ctx' is required for UnaryExpr");
+        return NULL;
+    }
     p = (expr_ty)_PyArena_Malloc(arena, sizeof(*p));
     if (!p)
         return NULL;
     p->kind = UnaryExpr_kind;
     p->v.UnaryExpr.target = target;
     p->v.UnaryExpr.op = op;
+    p->v.UnaryExpr.ctx = ctx;
     p->lineno = lineno;
     p->col_offset = col_offset;
     p->end_lineno = end_lineno;
@@ -4623,6 +4741,11 @@ ast2obj_expr(struct ast_state *state, struct validator *vstate, void* _o)
         if (PyObject_SetAttr(result, state->op, value) == -1)
             goto failed;
         Py_DECREF(value);
+        value = ast2obj_unaryexp_context(state, vstate, o->v.UnaryExpr.ctx);
+        if (!value) goto failed;
+        if (PyObject_SetAttr(result, state->ctx, value) == -1)
+            goto failed;
+        Py_DECREF(value);
         break;
     case BinOp_kind:
         tp = (PyTypeObject *)state->BinOp_type;
@@ -5088,10 +5211,37 @@ PyObject* ast2obj_unaryexp_op(struct ast_state *state, struct validator
                               *vstate, unaryexp_op_ty o)
 {
     switch(o) {
-        case Pre_inc:
-            return Py_NewRef(state->Pre_inc_singleton);
-        case Post_inc:
-            return Py_NewRef(state->Post_inc_singleton);
+        case UnaryInc:
+            return Py_NewRef(state->UnaryInc_singleton);
+        case UnaryDec:
+            return Py_NewRef(state->UnaryDec_singleton);
+        case UnaryShl:
+            return Py_NewRef(state->UnaryShl_singleton);
+        case UnaryShr:
+            return Py_NewRef(state->UnaryShr_singleton);
+        case UnaryXor:
+            return Py_NewRef(state->UnaryXor_singleton);
+        case UnaryAnd:
+            return Py_NewRef(state->UnaryAnd_singleton);
+        case UnaryOr:
+            return Py_NewRef(state->UnaryOr_singleton);
+        case UnaryMul:
+            return Py_NewRef(state->UnaryMul_singleton);
+        case UnaryDiv:
+            return Py_NewRef(state->UnaryDiv_singleton);
+        case UnaryMod:
+            return Py_NewRef(state->UnaryMod_singleton);
+    }
+    Py_UNREACHABLE();
+}
+PyObject* ast2obj_unaryexp_context(struct ast_state *state, struct validator
+                                   *vstate, unaryexp_context_ty o)
+{
+    switch(o) {
+        case Pre:
+            return Py_NewRef(state->Pre_singleton);
+        case Post:
+            return Py_NewRef(state->Post_singleton);
     }
     Py_UNREACHABLE();
 }
@@ -9017,6 +9167,7 @@ obj2ast_expr(struct ast_state *state, PyObject* obj, expr_ty* out, PyArena*
     if (isinstance) {
         expr_ty target;
         unaryexp_op_ty op;
+        unaryexp_context_ty ctx;
 
         if (PyObject_GetOptionalAttr(obj, state->target, &tmp) < 0) {
             return -1;
@@ -9052,8 +9203,25 @@ obj2ast_expr(struct ast_state *state, PyObject* obj, expr_ty* out, PyArena*
             if (res != 0) goto failed;
             Py_CLEAR(tmp);
         }
-        *out = _PyAST_UnaryExpr(target, op, lineno, col_offset, end_lineno,
-                                end_col_offset, arena);
+        if (PyObject_GetOptionalAttr(obj, state->ctx, &tmp) < 0) {
+            return -1;
+        }
+        if (tmp == NULL) {
+            PyErr_SetString(PyExc_TypeError, "required field \"ctx\" missing from UnaryExpr");
+            return -1;
+        }
+        else {
+            int res;
+            if (_Py_EnterRecursiveCall(" while traversing 'UnaryExpr' node")) {
+                goto failed;
+            }
+            res = obj2ast_unaryexp_context(state, tmp, &ctx, arena);
+            _Py_LeaveRecursiveCall();
+            if (res != 0) goto failed;
+            Py_CLEAR(tmp);
+        }
+        *out = _PyAST_UnaryExpr(target, op, ctx, lineno, col_offset,
+                                end_lineno, end_col_offset, arena);
         if (*out == NULL) goto failed;
         return 0;
     }
@@ -10672,24 +10840,115 @@ obj2ast_unaryexp_op(struct ast_state *state, PyObject* obj, unaryexp_op_ty*
 {
     int isinstance;
 
-    isinstance = PyObject_IsInstance(obj, state->Pre_inc_type);
+    isinstance = PyObject_IsInstance(obj, state->UnaryInc_type);
     if (isinstance == -1) {
         return -1;
     }
     if (isinstance) {
-        *out = Pre_inc;
+        *out = UnaryInc;
         return 0;
     }
-    isinstance = PyObject_IsInstance(obj, state->Post_inc_type);
+    isinstance = PyObject_IsInstance(obj, state->UnaryDec_type);
     if (isinstance == -1) {
         return -1;
     }
     if (isinstance) {
-        *out = Post_inc;
+        *out = UnaryDec;
+        return 0;
+    }
+    isinstance = PyObject_IsInstance(obj, state->UnaryShl_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = UnaryShl;
+        return 0;
+    }
+    isinstance = PyObject_IsInstance(obj, state->UnaryShr_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = UnaryShr;
+        return 0;
+    }
+    isinstance = PyObject_IsInstance(obj, state->UnaryXor_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = UnaryXor;
+        return 0;
+    }
+    isinstance = PyObject_IsInstance(obj, state->UnaryAnd_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = UnaryAnd;
+        return 0;
+    }
+    isinstance = PyObject_IsInstance(obj, state->UnaryOr_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = UnaryOr;
+        return 0;
+    }
+    isinstance = PyObject_IsInstance(obj, state->UnaryMul_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = UnaryMul;
+        return 0;
+    }
+    isinstance = PyObject_IsInstance(obj, state->UnaryDiv_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = UnaryDiv;
+        return 0;
+    }
+    isinstance = PyObject_IsInstance(obj, state->UnaryMod_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = UnaryMod;
         return 0;
     }
 
     PyErr_Format(PyExc_TypeError, "expected some sort of unaryexp_op, but got %R", obj);
+    return -1;
+}
+
+int
+obj2ast_unaryexp_context(struct ast_state *state, PyObject* obj,
+                         unaryexp_context_ty* out, PyArena* arena)
+{
+    int isinstance;
+
+    isinstance = PyObject_IsInstance(obj, state->Pre_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = Pre;
+        return 0;
+    }
+    isinstance = PyObject_IsInstance(obj, state->Post_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = Post;
+        return 0;
+    }
+
+    PyErr_Format(PyExc_TypeError, "expected some sort of unaryexp_context, but got %R", obj);
     return -1;
 }
 
@@ -13113,10 +13372,44 @@ astmodule_exec(PyObject *m)
     if (PyModule_AddObjectRef(m, "unaryexp_op", state->unaryexp_op_type) < 0) {
         return -1;
     }
-    if (PyModule_AddObjectRef(m, "Pre_inc", state->Pre_inc_type) < 0) {
+    if (PyModule_AddObjectRef(m, "UnaryInc", state->UnaryInc_type) < 0) {
         return -1;
     }
-    if (PyModule_AddObjectRef(m, "Post_inc", state->Post_inc_type) < 0) {
+    if (PyModule_AddObjectRef(m, "UnaryDec", state->UnaryDec_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "UnaryShl", state->UnaryShl_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "UnaryShr", state->UnaryShr_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "UnaryXor", state->UnaryXor_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "UnaryAnd", state->UnaryAnd_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "UnaryOr", state->UnaryOr_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "UnaryMul", state->UnaryMul_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "UnaryDiv", state->UnaryDiv_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "UnaryMod", state->UnaryMod_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "unaryexp_context",
+        state->unaryexp_context_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "Pre", state->Pre_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "Post", state->Post_type) < 0) {
         return -1;
     }
     if (PyModule_AddObjectRef(m, "boolop", state->boolop_type) < 0) {

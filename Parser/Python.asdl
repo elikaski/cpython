@@ -59,7 +59,7 @@ module Python
           -- BoolOp() can use left & right?
     expr = BoolOp(boolop op, expr* values)
          | NamedExpr(expr target, expr value)
-         | UnaryExpr(expr target, unaryexp_op op)
+         | UnaryExpr(expr target, unaryexp_op op, unaryexp_context ctx)
          | BinOp(expr left, operator op, expr right)
          | UnaryOp(unaryop op, expr operand)
          | Lambda(arguments args, expr body)
@@ -98,7 +98,10 @@ module Python
 
     expr_context = Load | Store | Del
 
-    unaryexp_op = Pre_inc | Post_inc
+    unaryexp_op = UnaryInc | UnaryDec | UnaryShl | UnaryShr | UnaryXor
+                | UnaryAnd | UnaryOr | UnaryMul | UnaryDiv | UnaryMod
+    
+    unaryexp_context = Pre | Post
 
     boolop = And | Or
 

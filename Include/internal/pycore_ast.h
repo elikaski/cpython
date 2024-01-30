@@ -20,7 +20,11 @@ typedef struct _expr *expr_ty;
 
 typedef enum _expr_context { Load=1, Store=2, Del=3 } expr_context_ty;
 
-typedef enum _unaryexp_op { Pre_inc=1, Post_inc=2 } unaryexp_op_ty;
+typedef enum _unaryexp_op { UnaryInc=1, UnaryDec=2, UnaryShl=3, UnaryShr=4,
+                            UnaryXor=5, UnaryAnd=6, UnaryOr=7, UnaryMul=8,
+                            UnaryDiv=9, UnaryMod=10 } unaryexp_op_ty;
+
+typedef enum _unaryexp_context { Pre=1, Post=2 } unaryexp_context_ty;
 
 typedef enum _boolop { And=1, Or=2 } boolop_ty;
 
@@ -383,6 +387,7 @@ struct _expr {
         struct {
             expr_ty target;
             unaryexp_op_ty op;
+            unaryexp_context_ty ctx;
         } UnaryExpr;
 
         struct {
@@ -781,9 +786,9 @@ expr_ty _PyAST_BoolOp(boolop_ty op, asdl_expr_seq * values, int lineno, int
 expr_ty _PyAST_NamedExpr(expr_ty target, expr_ty value, int lineno, int
                          col_offset, int end_lineno, int end_col_offset,
                          PyArena *arena);
-expr_ty _PyAST_UnaryExpr(expr_ty target, unaryexp_op_ty op, int lineno, int
-                         col_offset, int end_lineno, int end_col_offset,
-                         PyArena *arena);
+expr_ty _PyAST_UnaryExpr(expr_ty target, unaryexp_op_ty op, unaryexp_context_ty
+                         ctx, int lineno, int col_offset, int end_lineno, int
+                         end_col_offset, PyArena *arena);
 expr_ty _PyAST_BinOp(expr_ty left, operator_ty op, expr_ty right, int lineno,
                      int col_offset, int end_lineno, int end_col_offset,
                      PyArena *arena);

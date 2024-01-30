@@ -803,8 +803,26 @@ factor[expr_ty] (memo):
     | power
 
 unaryexp[expr_ty]:
-    | '++' a=NAME { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), Pre_inc, EXTRA) }
-    | a=NAME '++' { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), Post_inc, EXTRA) }
+    | '++' a=NAME { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryInc, Pre, EXTRA) }
+    | '--' a=NAME { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryDec, Pre, EXTRA) }
+    | '<<<' a=NAME { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryShl, Pre, EXTRA) }
+    | '>>>' a=NAME { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryShr, Pre, EXTRA) }
+    | '^^' a=NAME { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryXor, Pre, EXTRA) }
+    | '&&' a=NAME { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryAnd, Pre, EXTRA) }
+    | '||' a=NAME { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryOr, Pre, EXTRA) }
+    | '***' a=NAME { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryMul, Pre, EXTRA) }
+    | '///' a=NAME { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryDiv, Pre, EXTRA) }
+    | '%%' a=NAME { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryMod, Pre, EXTRA) }
+    | a=NAME '++' { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryInc, Post, EXTRA) }
+    | a=NAME '--' { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryDec, Post, EXTRA) }
+    | a=NAME '<<<' { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryShl, Post, EXTRA) }
+    | a=NAME '>>>' { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryShr, Post, EXTRA) }
+    | a=NAME '^^' { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryXor, Post, EXTRA) }
+    | a=NAME '&&' { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryAnd, Post, EXTRA) }
+    | a=NAME '||' { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryOr, Post, EXTRA) }
+    | a=NAME '***' { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryMul, Post, EXTRA) }
+    | a=NAME '///' { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryDiv, Post, EXTRA) }
+    | a=NAME '%%' { _PyAST_UnaryExpr(_PyPegen_set_expr_context(p, a, Store), UnaryMod, Post, EXTRA) }
 
 power[expr_ty]:
     | a=await_primary '**' b=factor { _PyAST_BinOp(a, Pow, b, EXTRA) }

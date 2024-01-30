@@ -6123,22 +6123,53 @@ compiler_visit_unary_expr(struct compiler *c, expr_ty e) {
     assert(e->kind == UnaryExpr_kind);
     expr_ty target = e->v.UnaryExpr.target;
     assert(target->kind == Name_kind);
+
+    int op;
     switch (e->v.UnaryExpr.op) {
-        case Pre_inc:
-            compiler_nameop(c, loc, target->v.Name.id, Load);
-            ADDOP_LOAD_CONST_NEW(c, loc, PyLong_FromLong(1));
-            ADDOP_BINARY(c, loc, Add);
-            ADDOP_I(c, loc, COPY, 1);
-            compiler_nameop(c, loc, target->v.Name.id, Store);
+        case UnaryInc:
+            op = Add;
             break;
-        
-        case Post_inc:
-            compiler_nameop(c, loc, target->v.Name.id, Load);
-            ADDOP_I(c, loc, COPY, 1);
-            ADDOP_LOAD_CONST_NEW(c, loc, PyLong_FromLong(1));
-            ADDOP_BINARY(c, loc, Add);
-            compiler_nameop(c, loc, target->v.Name.id, Store);
+        case UnaryDec:
+            op = Sub;
             break;
+        case UnaryShl:
+            op = LShift;
+            break;
+        case UnaryShr:
+            op = RShift;
+            break;
+        case UnaryXor:
+            op = BitXor;
+            break;
+        case UnaryAnd:
+            op = BitAnd;
+            break;
+        case UnaryOr:
+            op = BitOr;
+            break;
+        case UnaryMul:
+            op = Mult;
+            break;
+        case UnaryDiv:
+            op = FloorDiv;
+            break;
+        case UnaryMod:
+            op = Mod;
+            break;
+    }
+
+    if (e->v.UnaryExpr.ctx == Pre) {
+        compiler_nameop(c, loc, target->v.Name.id, Load);
+        ADDOP_LOAD_CONST_NEW(c, loc, PyLong_FromLong(1));
+        ADDOP_BINARY(c, loc, op);
+        ADDOP_I(c, loc, COPY, 1);
+        compiler_nameop(c, loc, target->v.Name.id, Store);
+    } else if (e->v.UnaryExpr.ctx == Post) {
+        compiler_nameop(c, loc, target->v.Name.id, Load);
+        ADDOP_I(c, loc, COPY, 1);
+        ADDOP_LOAD_CONST_NEW(c, loc, PyLong_FromLong(1));
+        ADDOP_BINARY(c, loc, op);
+        compiler_nameop(c, loc, target->v.Name.id, Store);
     }
     return SUCCESS;
 }
