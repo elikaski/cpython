@@ -4886,6 +4886,25 @@ long_abs(PyLongObject *v)
         return long_long((PyObject *)v);
 }
 
+static PyObject *
+long_collatz(PyLongObject *v)
+{
+    PyObject* res;
+    if (_PyLong_IsNegative(v) || _PyLong_IsZero(v))
+        return _PyLong_FromUnsignedChar(0);
+
+    if ((v->long_value.ob_digit[0] & 1) == 0) {
+        // even
+        res = long_div((PyObject *)v, _PyLong_FromUnsignedChar(2));
+    } else {
+        // odd
+        PyObject* temp = long_mul(v, (PyLongObject *)_PyLong_FromUnsignedChar(3));
+        res = long_add((PyLongObject *)temp, (PyLongObject *)_PyLong_FromUnsignedChar(1));
+        Py_DECREF(temp);
+    }
+    return res;
+}
+
 static int
 long_bool(PyLongObject *v)
 {
@@ -6244,6 +6263,7 @@ static PyNumberMethods long_as_number = {
     (unaryfunc)long_neg,        /*nb_negative*/
     long_long,                  /*tp_positive*/
     (unaryfunc)long_abs,        /*tp_absolute*/
+    (unaryfunc)long_collatz,    /*nb_collatz*/
     (inquiry)long_bool,         /*tp_bool*/
     (unaryfunc)long_invert,     /*nb_invert*/
     long_lshift,                /*nb_lshift*/

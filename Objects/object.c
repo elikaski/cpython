@@ -1973,6 +1973,7 @@ static PyNumberMethods none_as_number = {
     0,                          /* nb_negative */
     0,                          /* nb_positive */
     0,                          /* nb_absolute */
+    0,                          /* nb_collatz */
     (inquiry)none_bool,         /* nb_bool */
     0,                          /* nb_invert */
     0,                          /* nb_lshift */

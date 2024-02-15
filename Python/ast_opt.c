@@ -118,6 +118,7 @@ fold_unaryop(expr_ty node, PyArena *arena, _PyASTOptimizeState *state)
         [Not] = unary_not,
         [UAdd] = PyNumber_Positive,
         [USub] = PyNumber_Negative,
+        [Collatz] = PyNumber_Collatz,
     };
     PyObject *newval = ops[node->v.UnaryOp.op](arg->v.Constant.value);
     return make_const(node, newval, arena);

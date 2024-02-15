@@ -2093,6 +2093,7 @@ static PyNumberMethods set_as_number = {
     0,                                  /*nb_negative*/
     0,                                  /*nb_positive*/
     0,                                  /*nb_absolute*/
+    0,                                  /*nb_collatz*/
     0,                                  /*nb_bool*/
     0,                                  /*nb_invert*/
     0,                                  /*nb_lshift*/
@@ -2207,6 +2208,7 @@ static PyNumberMethods frozenset_as_number = {
     0,                                  /*nb_negative*/
     0,                                  /*nb_positive*/
     0,                                  /*nb_absolute*/
+    0,                                  /*nb_collatz*/
     0,                                  /*nb_bool*/
     0,                                  /*nb_invert*/
     0,                                  /*nb_lshift*/

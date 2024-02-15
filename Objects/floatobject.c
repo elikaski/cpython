@@ -1846,6 +1846,7 @@ static PyNumberMethods float_as_number = {
     (unaryfunc)float_neg, /* nb_negative */
     float_float,        /* nb_positive */
     (unaryfunc)float_abs, /* nb_absolute */
+    0,                   /* nb_collatz */
     (inquiry)float_bool, /* nb_bool */
     0,                  /* nb_invert */
     0,                  /* nb_lshift */

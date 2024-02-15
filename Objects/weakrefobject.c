@@ -662,6 +662,7 @@ static PyNumberMethods proxy_as_number = {
     proxy_neg,              /*nb_negative*/
     proxy_pos,              /*nb_positive*/
     proxy_abs,              /*nb_absolute*/
+    0,                      /*nb_collatz*/
     proxy_bool,             /*nb_bool*/
     proxy_invert,           /*nb_invert*/
     proxy_lshift,           /*nb_lshift*/

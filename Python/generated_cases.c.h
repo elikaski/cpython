@@ -5669,6 +5669,20 @@
             DISPATCH();
         }
 
+        TARGET(UNARY_COLLATZ) {
+            frame->instr_ptr = next_instr;
+            next_instr += 1;
+            INSTRUCTION_STATS(UNARY_COLLATZ);
+            PyObject *value;
+            PyObject *res;
+            value = stack_pointer[-1];
+            res = PyNumber_Collatz(value);
+            Py_DECREF(value);
+            if (res == NULL) goto pop_1_error;
+            stack_pointer[-1] = res;
+            DISPATCH();
+        }
+
         TARGET(UNARY_INVERT) {
             frame->instr_ptr = next_instr;
             next_instr += 1;

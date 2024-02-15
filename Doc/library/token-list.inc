@@ -49,6 +49,10 @@
 
    Token value for ``"-"``.
 
+.. data:: DOLLAR
+
+   Token value for ``"$"``.
+
 .. data:: STAR
 
    Token value for ``"*"``.

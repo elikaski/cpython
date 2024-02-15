@@ -58,6 +58,8 @@ void _PyAST_Fini(PyInterpreterState *interp)
     Py_CLEAR(state->Break_type);
     Py_CLEAR(state->Call_type);
     Py_CLEAR(state->ClassDef_type);
+    Py_CLEAR(state->Collatz_singleton);
+    Py_CLEAR(state->Collatz_type);
     Py_CLEAR(state->Compare_type);
     Py_CLEAR(state->Constant_type);
     Py_CLEAR(state->Continue_type);
@@ -1663,7 +1665,7 @@ init_types(struct ast_state *state)
                                                   NULL);
     if (!state->FloorDiv_singleton) return -1;
     state->unaryop_type = make_type(state, "unaryop", state->AST_type, NULL, 0,
-        "unaryop = Invert | Not | UAdd | USub");
+        "unaryop = Invert | Not | UAdd | USub | Collatz");
     if (!state->unaryop_type) return -1;
     if (add_attributes(state, state->unaryop_type, NULL, 0) < 0) return -1;
     state->Invert_type = make_type(state, "Invert", state->unaryop_type, NULL,
@@ -1692,6 +1694,14 @@ init_types(struct ast_state *state)
     state->USub_singleton = PyType_GenericNew((PyTypeObject *)state->USub_type,
                                               NULL, NULL);
     if (!state->USub_singleton) return -1;
+    state->Collatz_type = make_type(state, "Collatz", state->unaryop_type,
+                                    NULL, 0,
+        "Collatz");
+    if (!state->Collatz_type) return -1;
+    state->Collatz_singleton = PyType_GenericNew((PyTypeObject
+                                                 *)state->Collatz_type, NULL,
+                                                 NULL);
+    if (!state->Collatz_singleton) return -1;
     state->cmpop_type = make_type(state, "cmpop", state->AST_type, NULL, 0,
         "cmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn");
     if (!state->cmpop_type) return -1;
@@ -5057,6 +5067,8 @@ PyObject* ast2obj_unaryop(struct ast_state *state, struct validator *vstate,
             return Py_NewRef(state->UAdd_singleton);
         case USub:
             return Py_NewRef(state->USub_singleton);
+        case Collatz:
+            return Py_NewRef(state->Collatz_singleton);
     }
     Py_UNREACHABLE();
 }
@@ -10704,6 +10716,14 @@ obj2ast_unaryop(struct ast_state *state, PyObject* obj, unaryop_ty* out,
         *out = USub;
         return 0;
     }
+    isinstance = PyObject_IsInstance(obj, state->Collatz_type);
+    if (isinstance == -1) {
+        return -1;
+    }
+    if (isinstance) {
+        *out = Collatz;
+        return 0;
+    }
 
     PyErr_Format(PyExc_TypeError, "expected some sort of unaryop, but got %R", obj);
     return -1;
@@ -13002,6 +13022,9 @@ astmodule_exec(PyObject *m)
         return -1;
     }
     if (PyModule_AddObjectRef(m, "USub", state->USub_type) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "Collatz", state->Collatz_type) < 0) {
         return -1;
     }
     if (PyModule_AddObjectRef(m, "cmpop", state->cmpop_type) < 0) {

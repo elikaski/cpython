@@ -96,6 +96,7 @@ struct _Py_global_strings {
         STRUCT_FOR_ID(__classcell__)
         STRUCT_FOR_ID(__classdict__)
         STRUCT_FOR_ID(__classdictcell__)
+        STRUCT_FOR_ID(__collatz__)
         STRUCT_FOR_ID(__complex__)
         STRUCT_FOR_ID(__contains__)
         STRUCT_FOR_ID(__copy__)

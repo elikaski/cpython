@@ -493,6 +493,11 @@ PyAPI_FUNC(PyObject *) PyNumber_Positive(PyObject *o);
    This is the equivalent of the Python expression: abs(o). */
 PyAPI_FUNC(PyObject *) PyNumber_Absolute(PyObject *o);
 
+/* Returns the Collatz value of 'o', or NULL on failure.
+
+   This is the equivalent of the Python expression: $o. */
+PyAPI_FUNC(PyObject *) PyNumber_Collatz(PyObject *o);
+
 /* Returns the bitwise negation of 'o' on success, or NULL on failure.
 
    This is the equivalent of the Python expression: ~o. */

@@ -43,6 +43,7 @@ IDENTIFIERS = [
 
     # from SLOT* in Objects/typeobject.c
     '__abs__',
+    '__collatz__',
     '__add__',
     '__aiter__',
     '__and__',

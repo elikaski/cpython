@@ -22,6 +22,7 @@ const char * const _PyParser_TokenNames[] = {
     "SEMI",
     "PLUS",
     "MINUS",
+    "DOLLAR",
     "STAR",
     "SLASH",
     "VBAR",
@@ -82,6 +83,7 @@ _PyToken_OneChar(int c1)
 {
     switch (c1) {
     case '!': return EXCLAMATION;
+    case '$': return DOLLAR;
     case '%': return PERCENT;
     case '&': return AMPER;
     case '(': return LPAR;

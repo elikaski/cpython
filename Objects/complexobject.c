@@ -1067,6 +1067,7 @@ static PyNumberMethods complex_as_number = {
     (unaryfunc)complex_neg,                     /* nb_negative */
     (unaryfunc)complex_pos,                     /* nb_positive */
     (unaryfunc)complex_abs,                     /* nb_absolute */
+    0,                                          /* nb_collatz */
     (inquiry)complex_bool,                      /* nb_bool */
     0,                                          /* nb_invert */
     0,                                          /* nb_lshift */

@@ -431,6 +431,8 @@ int _PyOpcode_num_popped(int opcode, int oparg)  {
             return 1;
         case TO_BOOL_STR:
             return 1;
+        case UNARY_COLLATZ:
+            return 1;
         case UNARY_INVERT:
             return 1;
         case UNARY_NEGATIVE:
@@ -856,6 +858,8 @@ int _PyOpcode_num_pushed(int opcode, int oparg)  {
             return 1;
         case TO_BOOL_STR:
             return 1;
+        case UNARY_COLLATZ:
+            return 1;
         case UNARY_INVERT:
             return 1;
         case UNARY_NEGATIVE:
@@ -1139,6 +1143,7 @@ const struct opcode_metadata _PyOpcode_opcode_metadata[268] = {
     [TO_BOOL_LIST] = { true, INSTR_FMT_IXC00, HAS_DEOPT_FLAG },
     [TO_BOOL_NONE] = { true, INSTR_FMT_IXC00, HAS_DEOPT_FLAG },
     [TO_BOOL_STR] = { true, INSTR_FMT_IXC00, HAS_DEOPT_FLAG },
+    [UNARY_COLLATZ] = { true, INSTR_FMT_IX, HAS_ERROR_FLAG | HAS_ESCAPES_FLAG },
     [UNARY_INVERT] = { true, INSTR_FMT_IX, HAS_ERROR_FLAG | HAS_ESCAPES_FLAG },
     [UNARY_NEGATIVE] = { true, INSTR_FMT_IX, HAS_ERROR_FLAG | HAS_ESCAPES_FLAG },
     [UNARY_NOT] = { true, INSTR_FMT_IX, HAS_PURE_FLAG },
@@ -1322,6 +1327,7 @@ _PyOpcode_macro_expansion[256] = {
     [TO_BOOL_LIST] = { .nuops = 1, .uops = { { _TO_BOOL_LIST, 0, 0 } } },
     [TO_BOOL_NONE] = { .nuops = 1, .uops = { { _TO_BOOL_NONE, 0, 0 } } },
     [TO_BOOL_STR] = { .nuops = 1, .uops = { { _TO_BOOL_STR, 0, 0 } } },
+    [UNARY_COLLATZ] = { .nuops = 1, .uops = { { _UNARY_COLLATZ, 0, 0 } } },
     [UNARY_INVERT] = { .nuops = 1, .uops = { { _UNARY_INVERT, 0, 0 } } },
     [UNARY_NEGATIVE] = { .nuops = 1, .uops = { { _UNARY_NEGATIVE, 0, 0 } } },
     [UNARY_NOT] = { .nuops = 1, .uops = { { _UNARY_NOT, 0, 0 } } },
@@ -1547,6 +1553,7 @@ const char *_PyOpcode_OpName[268] = {
     [TO_BOOL_LIST] = "TO_BOOL_LIST",
     [TO_BOOL_NONE] = "TO_BOOL_NONE",
     [TO_BOOL_STR] = "TO_BOOL_STR",
+    [UNARY_COLLATZ] = "UNARY_COLLATZ",
     [UNARY_INVERT] = "UNARY_INVERT",
     [UNARY_NEGATIVE] = "UNARY_NEGATIVE",
     [UNARY_NOT] = "UNARY_NOT",
@@ -1785,6 +1792,7 @@ const uint8_t _PyOpcode_Deopt[256] = {
     [TO_BOOL_LIST] = TO_BOOL,
     [TO_BOOL_NONE] = TO_BOOL,
     [TO_BOOL_STR] = TO_BOOL,
+    [UNARY_COLLATZ] = UNARY_COLLATZ,
     [UNARY_INVERT] = UNARY_INVERT,
     [UNARY_NEGATIVE] = UNARY_NEGATIVE,
     [UNARY_NOT] = UNARY_NOT,
@@ -1800,7 +1808,6 @@ const uint8_t _PyOpcode_Deopt[256] = {
 #endif // NEED_OPCODE_METADATA
 
 #define EXTRA_CASES \
-    case 119: \
     case 120: \
     case 121: \
     case 122: \

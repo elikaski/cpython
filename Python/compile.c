@@ -4069,6 +4069,8 @@ unaryop(unaryop_ty op)
         return UNARY_INVERT;
     case USub:
         return UNARY_NEGATIVE;
+    case Collatz:
+        return UNARY_COLLATZ;
     default:
         PyErr_Format(PyExc_SystemError,
             "unary op %d should not be possible", op);

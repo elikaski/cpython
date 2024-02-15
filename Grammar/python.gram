@@ -800,6 +800,7 @@ factor[expr_ty] (memo):
     | '+' a=factor { _PyAST_UnaryOp(UAdd, a, EXTRA) }
     | '-' a=factor { _PyAST_UnaryOp(USub, a, EXTRA) }
     | '~' a=factor { _PyAST_UnaryOp(Invert, a, EXTRA) }
+    | '$' a=factor { _PyAST_UnaryOp(Collatz, a, EXTRA) }
     | power
 
 power[expr_ty]:

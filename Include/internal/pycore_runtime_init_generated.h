@@ -605,6 +605,7 @@ extern "C" {
     INIT_ID(__classcell__), \
     INIT_ID(__classdict__), \
     INIT_ID(__classdictcell__), \
+    INIT_ID(__collatz__), \
     INIT_ID(__complex__), \
     INIT_ID(__contains__), \
     INIT_ID(__copy__), \

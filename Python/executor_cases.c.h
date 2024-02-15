@@ -116,6 +116,17 @@
             break;
         }
 
+        case _UNARY_COLLATZ: {
+            PyObject *value;
+            PyObject *res;
+            value = stack_pointer[-1];
+            res = PyNumber_Collatz(value);
+            Py_DECREF(value);
+            if (res == NULL) goto pop_1_error_tier_two;
+            stack_pointer[-1] = res;
+            break;
+        }
+
         case _UNARY_NOT: {
             PyObject *value;
             PyObject *res;

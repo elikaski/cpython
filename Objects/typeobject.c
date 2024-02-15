@@ -8644,6 +8644,7 @@ slot_nb_power(PyObject *self, PyObject *other, PyObject *modulus)
 SLOT0(slot_nb_negative, __neg__)
 SLOT0(slot_nb_positive, __pos__)
 SLOT0(slot_nb_absolute, __abs__)
+SLOT0(slot_nb_collatz, __collatz__)
 
 static int
 slot_nb_bool(PyObject *self)
@@ -9569,6 +9570,7 @@ static pytype_slotdef slotdefs[] = {
     UNSLOT(__pos__, nb_positive, slot_nb_positive, wrap_unaryfunc, "+self"),
     UNSLOT(__abs__, nb_absolute, slot_nb_absolute, wrap_unaryfunc,
            "abs(self)"),
+    UNSLOT(__collatz__, nb_collatz, slot_nb_collatz, wrap_unaryfunc, "$self"),
     UNSLOT(__bool__, nb_bool, slot_nb_bool, wrap_inquirypred,
            "True if self else False"),
     UNSLOT(__invert__, nb_invert, slot_nb_invert, wrap_unaryfunc, "~self"),

@@ -303,6 +303,12 @@ dummy_func(
             ERROR_IF(res == NULL, error);
         }
 
+        inst(UNARY_COLLATZ, (value -- res)) {
+            res = PyNumber_Collatz(value);
+            DECREF_INPUTS();
+            ERROR_IF(res == NULL, error);
+        }
+
         pure inst(UNARY_NOT, (value -- res)) {
             assert(PyBool_Check(value));
             res = Py_IsFalse(value) ? Py_True : Py_False;

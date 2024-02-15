@@ -2774,6 +2774,7 @@ static PyNumberMethods delta_as_number = {
     (unaryfunc)delta_negative,                  /* nb_negative */
     (unaryfunc)delta_positive,                  /* nb_positive */
     (unaryfunc)delta_abs,                       /* nb_absolute */
+    0,                                          /* nb_collatz */
     (inquiry)delta_bool,                        /* nb_bool */
     0,                                          /*nb_invert*/
     0,                                          /*nb_lshift*/
@@ -3620,6 +3621,7 @@ static PyNumberMethods date_as_number = {
     0,                                                  /* nb_negative */
     0,                                                  /* nb_positive */
     0,                                                  /* nb_absolute */
+    0,                                                  /* nb_collatz */
     0,                                                  /* nb_bool */
 };
 
@@ -6630,6 +6632,7 @@ static PyNumberMethods datetime_as_number = {
     0,                                          /* nb_negative */
     0,                                          /* nb_positive */
     0,                                          /* nb_absolute */
+    0,                                          /* nb_collatz */
     0,                                          /* nb_bool */
 };
 

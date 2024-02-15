@@ -1381,6 +1381,7 @@ UNARY_FUNC(PyNumber_Negative, nb_negative, __neg__, "unary -")
 UNARY_FUNC(PyNumber_Positive, nb_positive, __pow__, "unary +")
 UNARY_FUNC(PyNumber_Invert, nb_invert, __invert__, "unary ~")
 UNARY_FUNC(PyNumber_Absolute, nb_absolute, __abs__, "abs()")
+UNARY_FUNC(PyNumber_Collatz, nb_collatz, __collatz__, "unary $")
 
 
 int
