@@ -2844,6 +2844,11 @@ long_divrem(PyLongObject *a, PyLongObject *b,
     PyLongObject *z;
 
     if (size_b == 0) {
+        if (size_a == 0) {
+            *pdiv = (PyLongObject*)_PyLong_GetOne();
+            *prem = (PyLongObject*)_PyLong_GetZero();
+            return 0;
+        }
         PyErr_SetString(PyExc_ZeroDivisionError,
                         "integer division or modulo by zero");
         return -1;
