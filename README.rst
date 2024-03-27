@@ -4,26 +4,21 @@ This is a fork of the official `CPython project <https://github.com/python/cpyth
 
 
 
-.. contents::
+Never21 Branch
+---------------
 
-Plusplus
---------
-
-The good old fashioned Python, now with the ++ operator!
-
-.. image:: https://github.com/elikaski/cpython/blob/plusplus/images/loop.PNG
-   :alt: Example Loop Code
-   :target: https://github.com/elikaski/cpython/tree/plusplus
+If an addition of numbers result in 21 - change the result to 42
 
 
-Can be found in the `plusplus <https://github.com/elikaski/cpython/tree/plusplus>`_ branch.
+.. image:: https://github.com/elikaski/cpython/blob/never21/images/example.PNG
+   :alt: Example Code
 
 
+How to run
+^^^^^^^^^^
 
-More things
------------
-Next cool thing will be uploaded on March 30
+In order to run the interpreter simply run python.exe.
 
-Stay tuned!
+If copied elsewhere, it requires to have python313.dll and the Lib directory in the same directory as python.exe.
 
-
+To make changes and compile, refer to the original `CPython project <https://github.com/python/cpython>`_.
