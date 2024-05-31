@@ -35,6 +35,44 @@ Can be found in the `Collatz <https://github.com/elikaski/cpython/tree/collatz>`
 
 
 
+Bugs
+----
+
+Some Python scripts that take advantage of undefined behaviours
+
+
+.. image:: https://github.com/elikaski/cpython/blob/bugs/images/set_crash_python_3_7.PNG
+   :alt: Crash in Python 3.7
+   :target: https://github.com/elikaski/cpython/tree/bugs
+
+
+Can be found in the `Bugs <https://github.com/elikaski/cpython/tree/bugs>`_ branch.
+
+
+
+Self Modifying Code
+-------------------
+
+Some Python scripts that show self-modifying code
+
+
+.. image:: https://github.com/elikaski/cpython/blob/self_modifying_code/images/code_patch_instruction.PNG
+   :alt: ADD to SUB
+   :target: https://github.com/elikaski/cpython/tree/self_modifying_code
+
+A script that replaces the ADD instruction with a SUB instruction
+
+And result of running this script
+
+.. image:: https://github.com/elikaski/cpython/blob/self_modifying_code/images/code_patch_instruction_result.PNG
+   :alt: ADD to SUB result
+   :target: https://github.com/elikaski/cpython/tree/self_modifying_code
+
+
+Can be found in the `Self Modifying Code <https://github.com/elikaski/cpython/tree/self_modifying_code>`_ branch.
+
+
+
 Aladeen
 --------
 
@@ -81,14 +119,5 @@ If an addition of numbers result in 21 - change the result to 42
 
 
 Can be found in the `Never21 <https://github.com/elikaski/cpython/tree/never21>`_ branch.
-
-
-
-
-More things
------------
-Next cool thing will be uploaded on May 30
-
-Stay tuned!
 
 
